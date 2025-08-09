@@ -1,0 +1,40 @@
+# Sample Policy Configuration for Proofcast
+# Copy this to config/policy.yaml and modify for your needs
+
+version: "1.0"
+name: "sample-policy"
+
+# Verification policies
+verification:
+  # Minimum confirmation time (seconds)
+  min_confirmation_time: 30
+  
+  # Required number of validators
+  required_validators: 3
+  
+  # Timeout for proof generation (seconds)
+  proof_timeout: 300
+
+# Event types that can be processed
+allowed_events:
+  - "financial_transaction"
+  - "document_signing" 
+  - "supply_chain_event"
+  - "identity_verification"
+
+# Security settings
+security:
+  # Enable signature verification
+  require_signatures: true
+  
+  # Enable timestamp validation
+  validate_timestamps: true
+  
+  # Maximum event age (hours)
+  max_event_age: 24
+
+# Logging configuration
+logging:
+  level: "info"
+  format: "json"
+  output: "stdout"

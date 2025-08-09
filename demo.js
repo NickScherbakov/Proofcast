@@ -1,4 +1,5 @@
 const axios = require('axios');
+const http = require('http');
 
 // Конфигурация API с таймаутами
 const api = axios.create({
@@ -116,4 +117,52 @@ if (require.main === module) {
     runDemo();
 }
 
-module.exports = { createProof, verifyProof, runDemo };
+// Mock servers for testing
+function createMockServer(port, serviceName) {
+    const server = http.createServer((req, res) => {
+        res.setHeader('Content-Type', 'application/json');
+        
+        if (req.url === '/health') {
+            res.writeHead(200);
+            res.end(JSON.stringify({ status: 'healthy', service: serviceName }));
+        } else if (req.url.startsWith('/api/proofs') && req.method === 'POST') {
+            res.writeHead(201);
+            res.end(JSON.stringify({ 
+                proofId: `proof_${Date.now()}`,
+                status: 'created',
+                timestamp: new Date().toISOString()
+            }));
+        } else if (req.url.startsWith('/api/verify/')) {
+            res.writeHead(200);
+            res.end(JSON.stringify({
+                valid: true,
+                proofId: req.url.split('/').pop(),
+                timestamp: new Date().toISOString(),
+                validators: 3
+            }));
+        } else {
+            res.writeHead(404);
+            res.end(JSON.stringify({ error: 'Not found' }));
+        }
+    });
+    
+    return server;
+}
+
+// Start mock servers for development/testing
+function startMockServers() {
+    const coreServer = createMockServer(8080, 'core');
+    const verifierServer = createMockServer(8081, 'verifier');
+    
+    coreServer.listen(8080, () => {
+        console.log('🔧 Mock Core Service запущен на порту 8080');
+    });
+    
+    verifierServer.listen(8081, () => {
+        console.log('🔧 Mock Verifier Service запущен на порту 8081');
+    });
+    
+    return { coreServer, verifierServer };
+}
+
+module.exports = { createProof, verifyProof, runDemo, startMockServers };

@@ -4,16 +4,30 @@
   "description": "Dynamically verifiable infrastructure for documented causality - Demo",
   "main": "demo.js",
   "scripts": {
+    "start": "node demo.js",
     "demo": "node demo.js",
-    "lint": "eslint demo.js",
+    "mock-servers": "node mock-servers.js",
+    "test": "mocha test/*.test.js --timeout 5000",
+    "test:demo": "node -e \"require('./mock-servers.js'); setTimeout(() => require('./demo.js'), 2000)\"",
+    "lint": "eslint demo.js mock-servers.js test/*.js",
+    "lint:fix": "eslint demo.js mock-servers.js test/*.js --fix",
+    "docker:build": "docker build -f Dockerfile.core -t proofcast-core:latest . && docker build -f Dockerfile.verifier -t proofcast-verifier:latest . && docker build -f Dockerfile.ui -t proofcast-ui:latest .",
     "docker:up": "docker-compose up -d",
-    "docker:down": "docker-compose down"
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "health-check": "curl -f http://localhost:8080/health && curl -f http://localhost:8081/health",
+    "dev": "nodemon demo.js"
   },
   "dependencies": {
     "axios": "^1.5.0"
   },
   "devDependencies": {
-    "eslint": "^8.0.0"
+    "eslint": "^8.0.0",
+    "@eslint/create-config": "^0.4.6",
+    "markdownlint-cli": "^0.37.0",
+    "yamllint": "^1.0.0",
+    "nodemon": "^3.0.1",
+    "mocha": "^10.0.0"
   },
   "engines": {
     "node": ">=16.0.0"

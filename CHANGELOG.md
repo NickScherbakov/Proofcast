@@ -1,9 +1,32 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+Все важные изменения в этом проекте будут документированы в этом файле.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+Формат основан на [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+и этот проект следует принципам [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [1.0.1] - 2025-08-09
+
+### Добавлено
+- Структурирована архитектура проекта
+- Добавлены Dockerfile для каждого сервиса (core, verifier, ui)
+- Созданы mock серверы для разработки и тестирования
+- Добавлены базовые unit тесты с Mocha
+- Настроен ESLint и линтинг кода
+- Созданы GitHub Actions для CI/CD pipeline
+- Добавлена поддержка health check'ов для всех сервисов
+- Улучшена документация и README
+
+### Исправлено
+- Исправлены пути конфигурационных файлов
+- Переименованы служебные файлы (.eslintrc.js, .gitignore)
+- Исправлена структура docker-compose.yml с build context
+- Добавлены отсутствующие npm скрипты
+
+### Улучшено
+- Обновлен package.json с дополнительными скриптами
+- Улучшена структура директорий (config/, docs/, .github/)
+- Добавлены security настройки в Docker контейнеры
 
 ## [1.0.0] - 2025-08-10
 
