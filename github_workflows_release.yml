@@ -1,0 +1,109 @@
+name: Release Pipeline
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  REGISTRY: ghcr.io
+  NODE_VERSION: '18'
+
+jobs:
+  build-and-publish:
+    name: Build and Publish Docker Images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Login to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ github.repository }}
+        tags: |
+          type=ref,event=tag
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=semver,pattern={{major}}
+          
+    - name: Build and push Core image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./docker/Dockerfile.core
+        push: true
+        tags: ${{ env.REGISTRY }}/${{ github.repository }}-core:${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        
+    - name: Build and push Verifier image  
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./docker/Dockerfile.verifier
+        push: true
+        tags: ${{ env.REGISTRY }}/${{ github.repository }}-verifier:${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        
+    - name: Build and push UI image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./proofcast-ui
+        file: ./proofcast-ui/Dockerfile
+        push: true
+        tags: ${{ env.REGISTRY }}/${{ github.repository }}-ui:${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: build-and-publish
+    permissions:
+      contents: write
+      
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Generate changelog
+      id: changelog
+      run: |
+        # Extract version from tag
+        VERSION=${GITHUB_REF#refs/tags/v}
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        
+        # Generate changelog (basic version)
+        echo "## 🚀 Release v$VERSION" > CHANGELOG.md
+        echo "" >> CHANGELOG.md
+        echo "### 📋 Changes in this release:" >> CHANGELOG.md
+        git log --pretty=format:"- %s (%h)" $(git describe --tags --abbrev=0 HEAD^)..HEAD >> CHANGELOG.md
+        echo "" >> CHANGELOG.md
+        echo "### 🐳 Docker Images:" >> CHANGELOG.md
+        echo "- \`ghcr.io/${{ github.repository }}-core:v$VERSION\`" >> CHANGELOG.md
+        echo "- \`ghcr.io/${{ github.repository }}-verifier:v$VERSION\`" >> CHANGELOG.md  
+        echo "- \`ghcr.io/${{ github.repository }}-ui:v$VERSION\`" >> CHANGELOG.md
+        
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ github.ref }}
+        name: Release v${{ steps.changelog.outputs.version }}
+        body_path: CHANGELOG.md
+        draft: false
+        prerelease: ${{ contains(github.ref, '-') }}
+        generate_release_notes: true
