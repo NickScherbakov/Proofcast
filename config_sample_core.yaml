@@ -1,0 +1,35 @@
+# Core Service Configuration
+# Copy this to config/core.yaml and modify for your needs
+
+server:
+  host: "0.0.0.0"
+  port: 8080
+  
+database:
+  # Database connection string
+  url: "postgres://user:password@localhost:5432/proofcast"
+  
+  # Connection pool settings
+  max_connections: 10
+  idle_timeout: "5m"
+
+# ZK-proof settings
+zk_proofs:
+  # Circuit compilation cache
+  cache_circuits: true
+  
+  # Proof generation timeout
+  timeout: "10m"
+  
+  # Parallelization settings
+  worker_threads: 4
+
+# API settings
+api:
+  rate_limit:
+    requests_per_minute: 100
+    burst_size: 10
+    
+  cors:
+    enabled: true
+    allowed_origins: ["http://localhost:3000"]

@@ -1,0 +1,30 @@
+# Verifier Service Configuration  
+# Copy this to config/verifier.yaml and modify for your needs
+
+server:
+  host: "0.0.0.0"
+  port: 8081
+
+# Core service connection
+core_service:
+  url: "http://localhost:8080"
+  timeout: "30s"
+  retry_attempts: 3
+
+# Verification settings
+verification:
+  # Batch size for bulk verification
+  batch_size: 10
+  
+  # Verification timeout per proof
+  timeout_per_proof: "5m"
+  
+  # Enable parallel verification
+  parallel_workers: 2
+
+# Blockchain integration (optional)
+blockchain:
+  enabled: false
+  provider: "ethereum"
+  network: "sepolia"
+  contract_address: ""

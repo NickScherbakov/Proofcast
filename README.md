@@ -1,112 +1,182 @@
 # Proofcast
 
-**Dynamically verifiable infrastructure for documented causality.**  
-No promises. Just receipts.
+Dynamically verifiable infrastructure for documented causality
 
-## 🧩 What is Proofcast?
+[![CI Status](https://github.com/NickScherbakov/Proofcast/actions/workflows/ci.yml/badge.svg)](https://github.com/NickScherbakov/Proofcast/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Demo Version](https://img.shields.io/npm/v/proofcast-demo?label=demo)](https://www.npmjs.com/package/proofcast-demo)
 
-`Proofcast` is a stack for generating, signing, and publishing cryptographically verifiable receipts of digital actions — DNS lookups, API calls, policy triggers.
+## 🎯 Overview
 
-Each action yields a receipt.  
-Each receipt links to a cause.  
-Each cause maps to a declared policy.
+Proofcast provides a robust infrastructure for creating and verifying cryptographic proofs of events and their causality relationships. Built with zero-knowledge proofs and distributed verification, it ensures tamper-evident documentation of critical business processes.
 
-## 🔐 Core Principles
+## 🏗️ Architecture
 
-- Proof-by-default
-- Trust is optional, verification is the interface
-- Jurisdiction-aware execution
-- Zero Knowledge traceability
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Proofcast UI  │    │ Proofcast Core  │    │ Proofcast       │
+│                 │◄──►│                 │◄──►│ Verifier        │
+│ React Frontend  │    │ Proof Generator │    │ ZK Validator    │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+```
 
-## 📦 Modules
-
-- `proofcast-core`: policy engine + receipt generator
-- `proofcast-verifier`: minimal client-side receipt validator
-- `proofcast-ui`: visualization of causality chains
-- `proofcast-pub`: inclusion logs & Merkle bundles
-
-## 🤝 Integrations
-
-- Rekor JSON output
-- ZK-trace proof API
-- Time attestation via Roughtime / TSA
-- RPKI & ASPA hygiene support
-
-## 🧠 Who it's for?
-
-- Fintech & Medtech with regulatory pressure
-- Auditors & forensic analysts
-- Compliance-driven API services
-- Sovereign tech architects
-
-## 💡 Tagline
-
-> **Doubt everything. Verify with Proofcast.**
-
-## Getting Started
+## 🚀 Quick Start
 
 ### Prerequisites
+- Docker and Docker Compose
+- Node.js 16+ (for demo)
 
-- Docker & Docker Compose  
-- Node.js (v14+) and npm  
-
-### Clone the repository
-
+### 1. Clone and Setup
 ```bash
 git clone https://github.com/NickScherbakov/Proofcast.git
 cd Proofcast
+npm install
 ```
 
-### Start the demo stack
+### 2. Configure Services
+```bash
+# Copy sample configurations
+cp -r config/sample config
+# Edit configurations as needed
+nano config/policy.yaml
+```
+
+### 3. Build and Run
+```bash
+# Start all services
+npm run docker:up
+
+# Run demonstration
+npm run demo
+```
+
+### 4. Access Services
+- **UI Dashboard**: http://localhost:3000
+- **Core API**: http://localhost:8080
+- **Verifier API**: http://localhost:8081
+
+## 🔧 Building UI
+
+To build the UI component separately:
 
 ```bash
-docker-compose up -d
+cd proofcast-ui
+npm install
+npm run build
 ```
 
-This will launch three services:
+The build artifacts will be available in the `dist/` directory and used by the Docker container.
 
-- `proofcast-core` (port 4000) – generates receipts via REST API  
-- `proofcast-verifier` (port 4001) – verifies receipts  
-- `proofcast-ui` (port 3000) – visualizes the causal chain graph  
+## 📋 Use Cases
 
-### Run the demo script
+### Financial Technology
+- **Transaction Verification**: Prove payment execution without revealing amounts
+- **Compliance Auditing**: Generate tamper-proof audit trails
+- **Cross-border Settlements**: Verify international transfers with privacy
+
+### Medical Technology  
+- **Patient Data Integrity**: Prove medical record authenticity
+- **Drug Traceability**: Track pharmaceutical supply chains
+- **Clinical Trial Validation**: Verify research data without exposing patient information
+
+### Supply Chain
+- **Product Authenticity**: Prove genuine product origins
+- **Quality Assurance**: Verify manufacturing standards compliance
+- **Logistics Tracking**: Create immutable shipment proofs
+
+## 🛠️ Configuration
+
+### Core Service (`config/core.yaml`)
+```yaml
+server:
+  host: "0.0.0.0"
+  port: 8080
+  
+zk_proofs:
+  timeout: "10m"
+  worker_threads: 4
+```
+
+### Verification Policy (`config/policy.yaml`)
+```yaml
+verification:
+  min_confirmation_time: 30
+  required_validators: 3
+  
+allowed_events:
+  - "financial_transaction"
+  - "document_signing"
+```
+
+## 📚 API Reference
+
+### Core Service Endpoints
+
+#### Create Proof
+```http
+POST /api/proofs
+Content-Type: application/json
+
+{
+  "event": {
+    "type": "financial_transaction",
+    "amount": 1000,
+    "from": "account_001",
+    "to": "account_002"
+  },
+  "timestamp": "2025-01-10T12:00:00Z"
+}
+```
+
+#### Get Proof Status
+```http
+GET /api/proofs/{proofId}
+```
+
+### Verifier Service Endpoints
+
+#### Verify Proof
+```http
+GET /api/verify/{proofId}
+```
+
+Returns:
+```json
+{
+  "valid": true,
+  "proofId": "proof_abc123",
+  "timestamp": "2025-01-10T12:00:00Z",
+  "validators": 3
+}
+```
+
+## 🧪 Testing
 
 ```bash
-npm install axios
-node demo.js
+# Run linting
+npm run lint
+
+# Test Docker services
+npm run docker:up
+curl -f http://localhost:8080/health
+curl -f http://localhost:8081/health
 ```
 
-You’ll see in your console:
+## 🤝 Contributing
 
-1. The generated receipt  
-2. The verification result with full details  
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Make your changes and test them
+4. Commit your changes: `git commit -m 'Add amazing feature'`
+5. Push to the branch: `git push origin feature/amazing-feature`
+6. Open a Pull Request
 
-### Explore the UI
+## 📄 License
 
-Open your browser at http://localhost:3000 to inspect the live causal-chain graph.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
----
+## 🔗 Links
 
-## Example Scenarios
-
-1. Obtain a receipt for an HTTP request to `/status`  
-2. Verify the same receipt via CLI (`demo.js`) and via the UI  
-3. Inspect metadata (timestamps, Merkle proofs, policy identifiers)
-
----
-
-## Troubleshooting
-
-- If containers fail to start, run `docker-compose logs <service>` to inspect errors.  
-- Make sure ports 3000–4001 are free on your host.  
-- If `demo.js` throws a network error, confirm `proofcast-core` and `proofcast-verifier` are healthy (`docker ps`).  
-
----
-
-## Next Steps
-
-- Tweak policies in `config/core/*.yaml` to match your compliance requirements  
-- Integrate receipt submission into your SIEM or API gateway  
-- Load-test `proofcast-core` with parallel requests to measure latency and throughput  
-- Share feedback, file issues or contribute new plugins under `proofcast-core/plugins`
-```
+- [Documentation](docs/)
+- [Issue Tracker](https://github.com/NickScherbakov/Proofcast/issues)
+- [Discussions](https://github.com/NickScherbakov/Proofcast/discussions)
