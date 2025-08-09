@@ -1,0 +1,34 @@
+version: "3.8"
+
+services:
+  proofcast-core:
+    image: proofcast/core:latest
+    container_name: proofcast-core
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+    volumes:
+      - ./config/core:/etc/proofcast
+
+  proofcast-verifier:
+    image: proofcast/verifier:latest
+    container_name: proofcast-verifier
+    ports:
+      - "4001:4001"
+    depends_on:
+      - proofcast-core
+
+  proofcast-ui:
+    build:
+      context: ./proofcast-ui
+      dockerfile: Dockerfile
+    container_name: proofcast-ui
+    ports:
+      - "3000:3000"
+    depends_on:
+      - proofcast-core
+
+networks:
+  default:
+    driver: bridge
